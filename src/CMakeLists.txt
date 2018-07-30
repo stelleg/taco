@@ -6,6 +6,17 @@ else()
   message("-- Static library")
 endif()
 
+find_package(LLVM REQUIRED CONFIG)
+message(STATUS "Found LLVM ${LLVM_PACKAGE_VERSION}")
+message(STATUS "Using LLVMConfig.cmake in: ${LLVM_DIR}")
+
+include_directories(${LLVM_INCLUDE_DIRS})
+add_definitions(${LLVM_DEFINITIONS})
+
+# Find the libraries that correspond to the LLVM components
+# that we wish to use
+llvm_map_components_to_libnames(llvm_libs core mcjit bitwriter linker X86)
+
 set(TACO_SRC_DIRS . parser index_notation lower ir codegen storage error util)
 
 foreach(dir ${TACO_SRC_DIRS})
@@ -27,7 +38,8 @@ endif (CUDA)
 install(TARGETS taco DESTINATION lib)
 
 if (LINUX)
-  target_link_libraries(taco PRIVATE ${TACO_LIBRARIES} dl)
+  target_link_libraries(taco PRIVATE ${TACO_LIBRARIES} dl ${llvm_libs})
 else()
-  target_link_libraries(taco PRIVATE ${TACO_LIBRARIES})
+  target_link_libraries(taco PRIVATE ${TACO_LIBRARIES} ${llvm_libs})
 endif()
+

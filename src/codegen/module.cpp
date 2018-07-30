@@ -11,6 +11,8 @@
 #include "codegen/codegen_c.h"
 #include "codegen/codegen_cuda.h"
 #include "taco/cuda.h"
+#include "codegen/codegen_llvm.h"
+#include "codegen/llvm_headers.h"
 
 using namespace std;
 
@@ -43,17 +45,29 @@ void Module::compileToSource(string path, string prefix) {
     header.clear();
     source.clear();
     
-    taco_tassert(target.arch == Target::C99) <<
-        "Only C99 codegen supported currently";
-    std::shared_ptr<CodeGen> sourcegen =
-        CodeGen::init_default(source, CodeGen::C99Implementation);
-    CodeGen_C headergen(header, CodeGen::OutputKind::C99Header);
+    if (target.arch == Target::C99) {
+      std::shared_ptr<CodeGen> sourcegen =
+          CodeGen::init_default(source, CodeGen::C99Implementation);
+      CodeGen_C headergen(header, CodeGen::OutputKind::C99Header);
+      CodeGen_C headergen(header, CodeGen_C::OutputKind::C99Header);
     
-    for (auto func: funcs) {
-      sourcegen->compile(func, !didGenRuntime);
-      headergen.compile(func, !didGenRuntime);
-      didGenRuntime = true;
+    
+      for (auto func: funcs) {
+        headergen.compile(func, !didGenRuntime);
+        didGenRuntime = true;
+      }
+    } else {
+      llvm::LLVMContext context;
+      CodeGen_LLVM llvm_codegen(target, context);
+      CodeGen_C headergen(header, CodeGen_C::OutputKind::C99Header);
+      
+      for (auto func: funcs) {
+        llvm_codegen.compile(func, !didGenRuntime);
+        headergen.compile(func, !didGenRuntime);
+        didGenRuntime = true;
+      }
     }
+    
   }
 
   ofstream source_file;
