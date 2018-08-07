@@ -35,6 +35,7 @@ void Module::addFunction(Stmt func) {
 }
 
 void Module::compileToSource(string path, string prefix) {
+  std::string sourceSuffix;
   if (!moduleFromUserSource) {
   
     // create a codegen instance and add all the funcs
@@ -44,6 +45,8 @@ void Module::compileToSource(string path, string prefix) {
     source.str("");
     header.clear();
     source.clear();
+    
+
     
     if (target.arch == Target::C99) {
       std::shared_ptr<CodeGen> sourcegen =
@@ -56,6 +59,14 @@ void Module::compileToSource(string path, string prefix) {
         headergen.compile(func, !didGenRuntime);
         didGenRuntime = true;
       }
+      
+      sourceSuffix = ".c";
+      
+      ofstream source_file;
+      source_file.open(path+prefix+sourceSuffix);
+      source_file << source.str();
+      source_file.close();
+      
     } else {
       llvm::LLVMContext context;
       CodeGen_LLVM llvm_codegen(target, context);
@@ -66,6 +77,8 @@ void Module::compileToSource(string path, string prefix) {
         headergen.compile(func, !didGenRuntime);
         didGenRuntime = true;
       }
+      sourceSuffix = ".bc";
+      llvm_codegen.writeToFile(path+prefix+sourceSuffix);
     }
     
   }
@@ -139,15 +152,25 @@ string Module::compile() {
   }
   
   string cmd = cc + " " + cflags + " " +
-    prefix + file_ending + " " +
-    prefix + "_shims" + shims_file_ending + " " +
+    prefix + (target.arch == Target::X86 ? ".s " : ".c ") +
+    prefix + "_shims.c " +
     "-o " + prefix + ".so";
-
+  std::cout << "Compiling module " << prefix << std::endl;
+  
   // open the output file & write out the source
   compileToSource(tmpdir, libname);
   
   // write out the shims
   writeShims(funcs, tmpdir, libname);
+  
+  if (target.arch == Target::X86) {
+    // use llc to compile the .ll file
+    string llcCommand = util::getFromEnv("TACO_LLC", "llc") +
+      " " + prefix + ".bc";
+    int err = system(llcCommand.data());
+    taco_uassert(err == 0) << "Compilation command failed:\n" << cmd
+      << "\nreturned " << err;
+  }
   
   // now compile it
   int err = system(cmd.data());
