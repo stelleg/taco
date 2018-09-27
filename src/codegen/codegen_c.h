@@ -74,6 +74,25 @@ protected:
     virtual void visit(const VarDecl *op);
     virtual void visit(const GetProperty *op);
   };
+  
+protected:
+  using IRPrinter::visit;
+  void visit(const Function*);
+  void visit(const Var*);
+  void visit(const For*);
+  void visit(const While*);
+  void visit(const GetProperty*);
+  void visit(const Min*);
+  void visit(const Max*);
+  void visit(const Allocate*);
+  void visit(const Sqrt*);
+
+  std::map<Expr, std::string, ExprCompare> varMap;
+  std::ostream &out;
+  
+  OutputKind outputKind;
+  
+  
 };
 
 } // namespace ir
