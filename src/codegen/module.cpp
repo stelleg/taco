@@ -75,6 +75,7 @@ void Module::compileToSource(string path, string prefix) {
         didGenRuntime = true;
       }
       sourceSuffix = ".bc";
+      llvm_codegen.optimizeModule();
       llvm_codegen.writeToFile(path+prefix+sourceSuffix);
     }
     
