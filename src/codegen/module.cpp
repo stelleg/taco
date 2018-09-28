@@ -151,7 +151,7 @@ string Module::compile() {
   
   string cmd = cc + " " + cflags + " " +
     prefix + (target.arch == Target::X86 ? ".s " : ".c ") +
-    prefix + "_shims.c " +
+    (target.arch == Target::C99 ? prefix + "_shims.c " : "") +
     "-o " + prefix + ".so";
   std::cout << "Compiling module " << prefix << std::endl;
   
@@ -159,7 +159,9 @@ string Module::compile() {
   compileToSource(tmpdir, libname);
   
   // write out the shims
-  writeShims(funcs, tmpdir, libname);
+  if (target.arch == Target::C99) {
+    writeShims(funcs, tmpdir, libname);
+  }
   
   if (target.arch == Target::X86) {
     // use llc to compile the .ll file
