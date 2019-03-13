@@ -28,22 +28,6 @@ public:
   /// Generate shims that unpack an array of pointers representing
   /// a mix of taco_tensor_t* and scalars into a function call
   static void generateShim(const Stmt& func, std::stringstream &stream);
-protected:
-  using IRPrinter::visit;
-  void visit(const Function*);
-  void visit(const Var*);
-  void visit(const For*);
-  void visit(const While*);
-  void visit(const GetProperty*);
-  void visit(const Min*);
-  void visit(const Max*);
-  void visit(const Allocate*);
-  void visit(const Sqrt*);
-
-  std::map<Expr, std::string, ExprCompare> varMap;
-  std::ostream &out;
-  
-  OutputKind outputKind;
   
   // find variables for generating declarations
   // also only generates a single var for each GetProperty

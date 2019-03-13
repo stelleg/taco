@@ -48,11 +48,11 @@ void Module::compileToSource(string path, string prefix) {
     if (target.arch == Target::C99) {
       std::shared_ptr<CodeGen> sourcegen =
           CodeGen::init_default(source, CodeGen::C99Implementation);
-      CodeGen_C headergen(header, CodeGen::OutputKind::C99Header);
       CodeGen_C headergen(header, CodeGen_C::OutputKind::C99Header);
     
     
       for (auto func: funcs) {
+        sourcegen->compile(func, !didGenRuntime);
         headergen.compile(func, !didGenRuntime);
         didGenRuntime = true;
       }

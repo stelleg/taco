@@ -706,23 +706,9 @@ int main(int argc, char* argv[]) {
     if (newLower) {
       IndexStmt stmt = makeConcrete(tensor.getAssignment());
 
-      TOOL_BENCHMARK_TIMER(
-        assemble = lower(stmt, "assemble", true, false);
-        compute = lower(stmt, "compute",  false, true);
-        evaluate = lower(stmt, "evaluate", true, true);
-
-        module->addFunction(assemble);
-        module->addFunction(compute);
-        module->addFunction(evaluate);
-        module->compile();
-      , "Compile: ", compileTime);
-
-      void* evaluate = module->getFuncPtr("evaluate");
-      void* assemble = module->getFuncPtr("assemble");
-      void* compute  = module->getFuncPtr("compute");
-      kernel = Kernel(stmt, module, evaluate, assemble, compute);
-
-      //tensor.compileSource(util::toString(kernel));
+      compute = lower(stmt, "compute",  false, true);
+      assemble = lower(stmt, "assemble", true, false);
+      evaluate = lower(stmt, "evaluate", true, true);
     }
     else {
       set<old::Property> assembleProperties, computeProperties, evaluateProperties;
