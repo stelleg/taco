@@ -387,8 +387,10 @@ const Access TensorBase::operator()(const std::vector<IndexVar>& indices) const 
       << "A tensor of order " << getOrder() << " must be indexed with "
       << getOrder() << " variables, but is indexed with:  "
       << util::join(indices);
+
   return Access(new AccessTensorNode(*this, indices));
 }
+
 
 Access TensorBase::operator()(const std::vector<IndexVar>& indices) {
   taco_uassert(indices.size() == (size_t)getOrder())
@@ -540,6 +542,7 @@ void TensorBase::operator=(const IndexExpr& expr) {
 
 void TensorBase::setAssignment(Assignment assignment) {
   content->assignment = makeReductionNotation(assignment);
+  evaluate(); 
 }
 
 Assignment TensorBase::getAssignment() const {

@@ -31,7 +31,13 @@ void Module::setJITLibname() {
 }
 
 void Module::addFunction(Stmt func) {
-  funcs.push_back(func);
+  
+  for(auto i = funcs.begin(); i < funcs.end(); i++){
+    if((*i).as<Function>()->name == func.as<Function>()->name){
+      funcs.erase(i); 
+    }
+  }
+  funcs.push_back(func); 
 }
 
 void Module::compileToSource(string path, string prefix) {
